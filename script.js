@@ -14,76 +14,54 @@ function generateRandomTime(mean, stdDev) {
     return Math.max(100, mean + z * stdDev); // Ensure positive values
 }
 
-function calculatePercentile(value, sortedArray) {
-    if (sortedArray.length === 0) return 0;
 
-    let count = 0;
-    for (let i = 0; i < sortedArray.length; i++) {
-        if (sortedArray[i] <= value) count++;
-    }
-    return (count / sortedArray.length) * 100;
-}
-
-function getStarRating(percentile) {
-    if (percentile >= 90) {
-        return {
-            stars: "⭐⭐⭐⭐⭐",
-            label: "Lightning Fast",
-            description: "(top 10%)"
-        };
-    } else if (percentile >= 75) {
-        return {
-            stars: "⭐⭐⭐⭐",
-            label: "Fast",
-            description: "(top 25%)"
-        };
-    } else if (percentile >= 25) {
-        return {
-            stars: "⭐⭐⭐",
-            label: "Average",
-            description: "(average)"
-        };
-    } else if (percentile >= 10) {
-        return {
-            stars: "⭐⭐",
-            label: "Slow",
-            description: "(below average)"
-        };
-    } else {
-        return {
-            stars: "⭐",
-            label: "Very Slow",
-            description: "(bottom 25%)"
-        };
-    }
-}
-
-// Historical data for percentile calculation (based on analysis)
-const historicalTotalTimes = Array.from({length: 280}, () => {
-    const segments = [
-        generateRandomTime(485.28, 245.48),
-        generateRandomTime(2198.38, 120.45),
-        generateRandomTime(2145.91, 129.14)
-    ];
-    return segments.reduce((sum, time) => sum + time, 0);
-}).sort((a, b) => a - b);
-
-// Historical segment data for percentile calculation
-const historicalSegmentTimes = [
-    Array.from({length: 280}, () => generateRandomTime(485.28, 245.48)).sort((a, b) => a - b),
-    Array.from({length: 280}, () => generateRandomTime(2198.38, 120.45)).sort((a, b) => a - b),
-    Array.from({length: 280}, () => generateRandomTime(2145.91, 129.14)).sort((a, b) => a - b)
+// Unified rating system - eliminates duplication
+const RATING_LEVELS = [
+    { stars: "⭐⭐⭐⭐⭐", label: "Lightning Fast" },
+    { stars: "⭐⭐⭐⭐", label: "Fast" },
+    { stars: "⭐⭐⭐", label: "Average" },
+    { stars: "⭐⭐", label: "Slow" },
+    { stars: "⭐", label: "Very Slow" }
 ];
+
+// Thresholds for total journey and each segment
+const THRESHOLDS = {
+    total: [4.453, 4.624, 4.992, 5.203],
+    segments: [
+        [0.166, 0.308, 0.674, 0.826], // Segment 1: Start → London
+        [2.038, 2.128, 2.285, 2.358], // Segment 2: London → Tokyo
+        [1.978, 2.043, 2.253, 2.317]  // Segment 3: Tokyo → End
+    ]
+};
+
+function getRating(timeInMs, thresholds) {
+    const timeInSeconds = timeInMs / 1000;
+
+    for (let i = 0; i < thresholds.length; i++) {
+        if (timeInSeconds <= thresholds[i]) {
+            return RATING_LEVELS[i];
+        }
+    }
+    return RATING_LEVELS[4]; // Very Slow
+}
+
+function getTotalJourneyRating(timeInMs) {
+    return getRating(timeInMs, THRESHOLDS.total);
+}
+
+function getSegmentRating(timeInMs, segmentIndex) {
+    return getRating(timeInMs, THRESHOLDS.segments[segmentIndex]);
+}
+
 
 class JourneySimulator {
     constructor() {
-        this.currentRegion = 0;
-        this.startTime = 0;
-        this.segmentStartTime = 0;
-        this.segmentTimes = [];
-        this.segmentPercentiles = [];
+        this.segmentTimes = []; // Will store animation durations for each segment
         this.totalTime = 0;
         this.isRunning = false;
+        this.currentSegmentIndex = 0;
+        this.currentSegmentStartTime = 0;
+        this.currentSegmentDuration = 0;
 
         this.regions = ['region0', 'region1', 'region2', 'region3'];
         this.progressBars = ['progress0', 'progress1', 'progress2'];
@@ -107,13 +85,10 @@ class JourneySimulator {
         document.getElementById('results').style.display = 'none';
         document.querySelector('.timing-display').style.display = 'block';
 
-        this.startTime = Date.now();
-        this.segmentStartTime = this.startTime;
-
         // Activate first region
         document.getElementById(this.regions[0]).classList.add('active');
 
-        // Update timer
+        // Update timer based on animation progress
         this.updateTimer();
 
         // Simulate journey through regions
@@ -125,51 +100,56 @@ class JourneySimulator {
     }
 
     async travelToNextRegion(segmentIndex) {
-        // Generate random time for this segment
-        const segmentTime = generateRandomTime(stats.means[segmentIndex], stats.stdDevs[segmentIndex]);
+        // Generate animation time for this segment
+        const animationTime = generateRandomTime(stats.means[segmentIndex], stats.stdDevs[segmentIndex]);
+
+        // Set up current segment tracking for smooth animations
+        this.currentSegmentIndex = segmentIndex;
+        this.currentSegmentStartTime = Date.now();
+        this.currentSegmentDuration = animationTime;
 
         // Animate progress bar
-        await this.animateProgress(segmentIndex, segmentTime);
+        await this.animateProgress(segmentIndex, animationTime);
 
         // Update region states
         document.getElementById(this.regions[segmentIndex]).classList.remove('active');
         document.getElementById(this.regions[segmentIndex]).classList.add('completed');
         document.getElementById(this.regions[segmentIndex + 1]).classList.add('active');
 
-        // Record segment time and percentile
-        this.segmentTimes.push(segmentTime);
-        const segmentPercentile = calculatePercentile(segmentTime, historicalSegmentTimes[segmentIndex]);
-        this.segmentPercentiles.push(segmentPercentile);
-
-        this.segmentStartTime += segmentTime;
+        // Record animation time as the segment time (unified timing)
+        this.segmentTimes.push(animationTime);
     }
 
     async animateProgress(segmentIndex, duration) {
-        const progressBar = document.getElementById(this.progressBars[segmentIndex]);
-        const startTime = Date.now();
-
+        // Wait for the specified duration while updateTimer handles the visual animation
         return new Promise(resolve => {
-            const animate = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1) * 100;
-
-                progressBar.style.width = progress + '%';
-
-                if (progress < 100) {
-                    requestAnimationFrame(animate);
-                } else {
-                    resolve();
-                }
-            };
-            animate();
+            setTimeout(resolve, duration);
         });
     }
 
     updateTimer() {
         if (!this.isRunning) return;
 
-        const elapsed = Date.now() - this.startTime;
-        document.getElementById('currentTime').textContent = (elapsed / 1000).toFixed(3) + 's';
+        // Calculate completed segments time
+        const completedTime = this.segmentTimes.reduce((sum, time) => sum + time, 0);
+
+        // Calculate current segment progress - eliminate duplicate calculation
+        let currentSegmentProgress = 0;
+        let currentSegmentElapsed = 0;
+        if (this.currentSegmentDuration > 0) {
+            currentSegmentElapsed = Date.now() - this.currentSegmentStartTime;
+            currentSegmentProgress = Math.min(currentSegmentElapsed, this.currentSegmentDuration);
+        }
+
+        // Total current time = completed segments + current segment progress
+        const totalCurrentTime = completedTime + currentSegmentProgress;
+        document.getElementById('currentTime').textContent = (totalCurrentTime / 1000).toFixed(3) + 's';
+
+        // Update progress bar for current segment - reuse calculated elapsed time
+        if (this.currentSegmentIndex < this.progressBars.length && this.currentSegmentDuration > 0) {
+            const progress = Math.min(currentSegmentElapsed / this.currentSegmentDuration, 1) * 100;
+            document.getElementById(this.progressBars[this.currentSegmentIndex]).style.width = progress + '%';
+        }
 
         if (this.isRunning) {
             requestAnimationFrame(() => this.updateTimer());
@@ -178,78 +158,69 @@ class JourneySimulator {
 
     completeJourney() {
         this.isRunning = false;
-        // Use actual elapsed time instead of sum of generated times
-        this.totalTime = Date.now() - this.startTime;
-        const generatedTotalTime = this.segmentTimes.reduce((sum, time) => sum + time, 0);
+        // Calculate total time from sum of animation durations (unified timing)
+        this.totalTime = this.segmentTimes.reduce((sum, time) => sum + time, 0);
 
         // Complete final region
         document.getElementById(this.regions[3]).classList.remove('active');
         document.getElementById(this.regions[3]).classList.add('completed');
 
-        // Calculate total percentile using generated time for statistical comparison
-        const totalPercentile = calculatePercentile(generatedTotalTime, historicalTotalTimes);
-
         // Hide timing display
         document.querySelector('.timing-display').style.display = 'none';
 
-        // Show results (use stored segment percentiles)
-        this.showResults(totalPercentile, this.segmentPercentiles);
+        // Show results using unified animation timing
+        this.showResults();
 
         // Re-enable button
         document.getElementById('startRun').disabled = false;
     }
 
-    showResults(totalPercentile, segmentPercentiles) {
+    // Helper function to eliminate duplicated rating display creation
+    createRatingDisplay(element, rating, styles = {}) {
+        element.textContent = '';
+        const starsSpan = document.createElement('span');
+        starsSpan.textContent = rating.stars;
+        const labelSpan = document.createElement('span');
+        labelSpan.textContent = rating.label;
+        labelSpan.style.fontSize = styles.fontSize || '1rem';
+        labelSpan.style.opacity = styles.opacity || '1';
+        labelSpan.style.display = 'block';
+        element.appendChild(starsSpan);
+        element.appendChild(labelSpan);
+    }
+
+    showResults() {
         const resultsDiv = document.getElementById('results');
         const finalTimeDiv = document.getElementById('finalTime');
         const percentileDiv = document.getElementById('percentileResult');
-        const explanationDiv = document.getElementById('explanation');
 
-        // Get star rating for total performance
-        const totalRating = getStarRating(totalPercentile);
+        // Use animation time for both display and rating calculation (unified timing)
+        const totalRating = getTotalJourneyRating(this.totalTime);
 
         finalTimeDiv.textContent = (this.totalTime / 1000).toFixed(3) + 's';
 
-        // Safely update main rating display
-        percentileDiv.textContent = '';
-        const starsSpan = document.createElement('span');
-        starsSpan.textContent = totalRating.stars;
-        const labelSpan = document.createElement('span');
-        labelSpan.textContent = totalRating.label;
-        labelSpan.style.fontSize = '1rem';
-        labelSpan.style.display = 'block';
-        percentileDiv.appendChild(starsSpan);
-        percentileDiv.appendChild(labelSpan);
+        // Create main rating display using helper
+        this.createRatingDisplay(percentileDiv, totalRating);
 
-        explanationDiv.textContent = `${totalRating.description} - Great job completing your journey around the planet!`;
-
-        // Update segment details with star ratings
+        // Update segment details with star ratings using new time-based system
         for (let i = 0; i < 3; i++) {
-            const segmentRating = getStarRating(segmentPercentiles[i]);
+            const segmentRating = getSegmentRating(this.segmentTimes[i], i);
             document.getElementById(`segmentTime${i}`).textContent = (this.segmentTimes[i] / 1000).toFixed(3) + 's';
 
-            // Safely update segment rating display
+            // Create segment rating display using helper
             const segmentElement = document.getElementById(`segmentPercentile${i}`);
-            segmentElement.textContent = '';
-            const segmentStarsSpan = document.createElement('span');
-            segmentStarsSpan.textContent = segmentRating.stars;
-            const segmentLabelSpan = document.createElement('span');
-            segmentLabelSpan.textContent = segmentRating.label;
-            segmentLabelSpan.style.fontSize = '0.8rem';
-            segmentLabelSpan.style.opacity = '0.8';
-            segmentLabelSpan.style.display = 'block';
-            segmentElement.appendChild(segmentStarsSpan);
-            segmentElement.appendChild(segmentLabelSpan);
+            this.createRatingDisplay(segmentElement, segmentRating, { fontSize: '0.8rem', opacity: '0.8' });
         }
 
         resultsDiv.style.display = 'block';
     }
 
     reset() {
-        this.currentRegion = 0;
         this.segmentTimes = [];
-        this.segmentPercentiles = [];
         this.totalTime = 0;
+        this.currentSegmentIndex = 0;
+        this.currentSegmentStartTime = 0;
+        this.currentSegmentDuration = 0;
 
         // Reset all visual states
         this.regions.forEach(regionId => {

@@ -153,19 +153,6 @@ h1 {
     margin-bottom: 10px;
 }
 
-.segment-times {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.segment-time {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 0.9rem;
-}
 
 
 .results {
@@ -191,11 +178,6 @@ h1 {
     text-align: center;
 }
 
-.rating-explanation {
-    font-size: 1rem;
-    opacity: 0.9;
-    line-height: 1.4;
-}
 
 .segment-details {
     margin-top: 20px;
@@ -268,9 +250,6 @@ h1 {
         transition: height 0.3s ease;
     }
 
-    .segment-times {
-        grid-template-columns: 1fr;
-    }
 
     .segment-breakdown {
         grid-template-columns: 1fr;

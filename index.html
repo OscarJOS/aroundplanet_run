@@ -13,7 +13,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🌍 Around Planet Run</h1>
+        <h1>🌍 Around Planet</h1>
         <p class="subtitle">Simulate a run around the planet through AWS regions</p>
 
         <button class="run-button" id="startRun">Start Your Journey!</button>
@@ -55,7 +55,6 @@
         <div class="results" id="results">
             <div class="final-time" id="finalTime"></div>
             <div class="rating" id="percentileResult"></div>
-            <div class="rating-explanation" id="explanation"></div>
 
             <div class="segment-details">
                 <h3>Segment Performance</h3>
@@ -89,27 +88,27 @@
                 <div class="rating-item">
                     <span class="stars">⭐⭐⭐⭐⭐</span>
                     <span class="label">Lightning Fast</span>
-                    <span class="description">(top 10%) - 90th percentile and above</span>
+                    <span class="description">4.453s or faster</span>
                 </div>
                 <div class="rating-item">
                     <span class="stars">⭐⭐⭐⭐</span>
                     <span class="label">Fast</span>
-                    <span class="description">(top 25%) - 75th to 89th percentile</span>
+                    <span class="description">4.453s to 4.624s</span>
                 </div>
                 <div class="rating-item">
                     <span class="stars">⭐⭐⭐</span>
                     <span class="label">Average</span>
-                    <span class="description">(average) - 25th to 74th percentile</span>
+                    <span class="description">4.624s to 4.992s</span>
                 </div>
                 <div class="rating-item">
                     <span class="stars">⭐⭐</span>
                     <span class="label">Slow</span>
-                    <span class="description">(below average) - 10th to 24th percentile</span>
+                    <span class="description">4.992s to 5.203s</span>
                 </div>
                 <div class="rating-item">
                     <span class="stars">⭐</span>
                     <span class="label">Very Slow</span>
-                    <span class="description">(bottom 25%) - Below 10th percentile</span>
+                    <span class="description">5.203s or slower</span>
                 </div>
             </div>
         </div>
