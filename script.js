@@ -194,6 +194,12 @@ class JourneySimulator {
         const finalTimeDiv = document.getElementById('finalTime');
         const percentileDiv = document.getElementById('percentileResult');
 
+        // Defensive programming: Check if elements exist
+        if (!resultsDiv || !finalTimeDiv || !percentileDiv) {
+            console.error('Required DOM elements not found for showResults');
+            return;
+        }
+
         // Use animation time for both display and rating calculation (unified timing)
         const totalRating = getTotalJourneyRating(this.totalTime);
 
@@ -204,11 +210,19 @@ class JourneySimulator {
 
         // Update segment details with star ratings using new time-based system
         for (let i = 0; i < 3; i++) {
+            const segmentTimeElement = document.getElementById(`segmentTime${i}`);
+            const segmentElement = document.getElementById(`segmentPercentile${i}`);
+
+            // Check if segment elements exist
+            if (!segmentTimeElement || !segmentElement) {
+                console.error(`Segment ${i} elements not found`);
+                continue;
+            }
+
             const segmentRating = getSegmentRating(this.segmentTimes[i], i);
-            document.getElementById(`segmentTime${i}`).textContent = (this.segmentTimes[i] / 1000).toFixed(3) + 's';
+            segmentTimeElement.textContent = (this.segmentTimes[i] / 1000).toFixed(3) + 's';
 
             // Create segment rating display using helper
-            const segmentElement = document.getElementById(`segmentPercentile${i}`);
             this.createRatingDisplay(segmentElement, segmentRating, { fontSize: '0.8rem', opacity: '0.8' });
         }
 
