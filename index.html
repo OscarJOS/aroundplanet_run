@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Around Planet Run Simulator</title>
+    <link rel="icon" type="image/png" href="img.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Around Planet Run</h1>
+        <p class="subtitle">Simulate a run around the planet through AWS regions</p>
+
+        <button class="run-button" id="startRun">Start Your Journey!</button>
+
+        <div class="simulation-area" id="simulationArea">
+            <div class="journey-map">
+                <div class="region">
+                    <div class="region-name">N.Virginia Start</div>
+                    <div class="region-dot" id="region0"></div>
+                </div>
+                <div class="connection">
+                    <div class="connection-progress" id="progress0"></div>
+                </div>
+                <div class="region">
+                    <div class="region-name">London</div>
+                    <div class="region-dot" id="region1"></div>
+                </div>
+                <div class="connection">
+                    <div class="connection-progress" id="progress1"></div>
+                </div>
+                <div class="region">
+                    <div class="region-name">Tokyo</div>
+                    <div class="region-dot" id="region2"></div>
+                </div>
+                <div class="connection">
+                    <div class="connection-progress" id="progress2"></div>
+                </div>
+                <div class="region">
+                    <div class="region-name">N.Virginia End</div>
+                    <div class="region-dot" id="region3"></div>
+                </div>
+            </div>
+
+            <div class="timing-display">
+                <div class="current-time" id="currentTime">0.000s</div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="final-time" id="finalTime"></div>
+            <div class="rating" id="percentileResult"></div>
+            <div class="rating-explanation" id="explanation"></div>
+
+            <div class="segment-details">
+                <h3>Segment Performance</h3>
+                <div class="segment-breakdown">
+                    <div class="segment-result">
+                        <div class="label">Start → London</div>
+                        <div class="time" id="segmentTime0"></div>
+                        <div class="rating" id="segmentPercentile0"></div>
+                    </div>
+                    <div class="segment-result">
+                        <div class="label">London → Tokyo</div>
+                        <div class="time" id="segmentTime1"></div>
+                        <div class="rating" id="segmentPercentile1"></div>
+                    </div>
+                    <div class="segment-result">
+                        <div class="label">Tokyo → End</div>
+                        <div class="time" id="segmentTime2"></div>
+                        <div class="rating" id="segmentPercentile2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-source">
+            <p>Simulation based on real-time tracks from <a href="https://aroundplanet.tech/" target="_blank" rel="noopener">aroundplanet.tech</a></p>
+        </div>
+
+        <div class="metrics-explanation">
+            <h3>Performance Rating Guide</h3>
+            <div class="rating-guide">
+                <div class="rating-item">
+                    <span class="stars">⭐⭐⭐⭐⭐</span>
+                    <span class="label">Lightning Fast</span>
+                    <span class="description">(top 10%) - 90th percentile and above</span>
+                </div>
+                <div class="rating-item">
+                    <span class="stars">⭐⭐⭐⭐</span>
+                    <span class="label">Fast</span>
+                    <span class="description">(top 25%) - 75th to 89th percentile</span>
+                </div>
+                <div class="rating-item">
+                    <span class="stars">⭐⭐⭐</span>
+                    <span class="label">Average</span>
+                    <span class="description">(average) - 25th to 74th percentile</span>
+                </div>
+                <div class="rating-item">
+                    <span class="stars">⭐⭐</span>
+                    <span class="label">Slow</span>
+                    <span class="description">(below average) - 10th to 24th percentile</span>
+                </div>
+                <div class="rating-item">
+                    <span class="stars">⭐</span>
+                    <span class="label">Very Slow</span>
+                    <span class="description">(bottom 25%) - Below 10th percentile</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
